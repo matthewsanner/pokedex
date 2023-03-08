@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { typeColors } from './typeColors';
+import PokemonList from './components/PokemonList';
+import TeamList from './components/TeamList';
 import './App.css';
 
 function Pokedex() {
@@ -32,51 +33,8 @@ function Pokedex() {
 
   return (
     <div className="container">
-      <div className="pokemon">
-        {pokemon.map((result) => (
-          <div
-            className="pokemon"
-            key={result.id}
-            style={{ backgroundColor: typeColors[result.types[0].type.name] }}
-            onClick={() => addToTeam(result)}
-          >
-            <img src={result.sprites.front_default} alt={result.name} />
-            <div className="info">
-              <h2>{result.name}</h2>
-              <div className="types">
-                {result.types.map((type, index) => (
-                  <div key={index} className="type" style={{ backgroundColor: typeColors[type.type.name] }}>
-                    {type.type.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="team">
-        <h2>Team</h2>
-        {team.map((result) => (
-          <div
-            className="pokemon"
-            key={result.id}
-            style={{ backgroundColor: typeColors[result.types[0].type.name] }}
-            onClick={() => removeFromTeam(result)}
-          >
-            <img src={result.sprites.front_default} alt={result.name} />
-            <div className="info">
-              <h2>{result.name}</h2>
-              <div className="types">
-                {result.types.map((type, index) => (
-                  <div key={index} className="type" style={{ backgroundColor: typeColors[type.type.name] }}>
-                    {type.type.name}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <PokemonList pokemon={pokemon} onClick={addToTeam} />
+      <TeamList team={team} onClick={removeFromTeam} />
     </div>
   );
 }
