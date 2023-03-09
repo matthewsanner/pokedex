@@ -11,7 +11,7 @@ function PokemonCard({ pokemon, onClick }) {
     >
       <img src={pokemon.sprites.front_default} alt={pokemon.name} />
       <div className="info">
-        <h2>{pokemon.name}</h2>
+        <h3>{pokemon.name}</h3>
         <div className="types">
           {pokemon.types.map((type, index) => (
             <div key={index} className="type" style={{ backgroundColor: typeColors[type.type.name] }}>

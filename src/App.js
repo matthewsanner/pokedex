@@ -33,8 +33,11 @@ function Pokedex() {
 
   return (
     <div className="container">
-      <PokemonList pokemon={pokemon} onClick={addToTeam} />
-      <TeamList team={team} onClick={removeFromTeam} />
+      <h1>Pokemon Team Builder</h1>
+      <div className="container2">
+        <PokemonList pokemon={pokemon} onClick={addToTeam} />
+        <TeamList team={team} onClick={removeFromTeam} />
+      </div>
     </div>
   );
 }

@@ -4,9 +4,9 @@ import PokemonCard from './PokemonCard';
 function TeamList({ team, onClick }) {
   return (
     <div className="team">
-      <h2>Team</h2>
+      <h2>Your Team (up to 6)</h2>
       {team.map((result) => (
-        <PokemonCard pokemon={result} onClick={() => onClick(result)} />
+        <PokemonCard key={result.id} pokemon={result} onClick={() => onClick(result)} />
       ))}
     </div>
   );
