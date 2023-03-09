@@ -32,11 +32,20 @@ function Pokedex() {
   };
 
   return (
-    <div className="container">
-      <h1>Pokemon Team Builder</h1>
-      <div className="container2">
-        <PokemonList pokemon={pokemon} onClick={addToTeam} />
-        <TeamList team={team} onClick={removeFromTeam} />
+    <div className="container-fluid">
+      <div className="row">
+        <div className="col-12">
+          <h1>Pokemon Team Builder</h1>
+        </div>
+      </div>
+      <div className="row justify-content-center">
+        <div className="col-11 col-xl-3 order-xl-2 text-center sections team">
+          <TeamList team={team} onClick={removeFromTeam} />
+        </div>
+        <div className="col-11 col-xl-8 order-xl-1 text-center sections">
+          <PokemonList pokemon={pokemon} onClick={addToTeam} />
+        </div>
+
       </div>
     </div>
   );
