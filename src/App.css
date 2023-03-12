@@ -1,5 +1,5 @@
 #root {
-  background-color: rgba(255, 213, 145, 0.493);
+  background-color: rgb(255, 243, 223);
 }
 
 .pokemon {
@@ -11,6 +11,7 @@
   border-radius: 5px;
   text-align: center;
   box-shadow: -1px 1px 7px black;
+  cursor: pointer;
 }
 
 .pokemon img {
@@ -32,18 +33,18 @@
   align-items: center;
 }
 
-.type {
+.type-styles {
   display: inline-block;
   width: 80px;
   margin: 5px;
   padding: 5px;
   background-color: #fff;
-  border: 1px solid #333;
+  border: 1px solid black;
   border-radius: 5px;
   text-transform: uppercase;
   font-size: 11px;
   font-weight: bold;
-  color: #333;
+  color: black;
 }
 
 h1 {
@@ -56,11 +57,12 @@ h1 {
 h3 {
   margin: 5px;
   margin-left: 15px;
+  margin-right: 15px;
   margin-top: 10px;
 }
 
 .sections {
-  background-color: rgb(255, 213, 145);
+  background-color: rgba(255, 213, 145, 0.493);
   border: 2px solid black;
   border-radius: 20px;
   margin: 15px;
@@ -70,4 +72,37 @@ h3 {
 
 .team {
   height: fit-content;
+  top: 15px;
+  background-color: rgb(255, 213, 145);
+}
+
+.pokelist {
+  margin-bottom: 30px;
+}
+
+.accordion-content {
+  background-color: rgb(255, 213, 145);
+}
+
+.accordion-title {
+  background-color: rgb(255, 213, 145);
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.accordion-item {
+  background-color: rgb(255, 213, 145);
+  border: none;
+}
+
+@media (max-width: 1199.97px) {
+  .accordion-content {
+    max-height: 237px;
+    overflow-y: auto;
+  }
+}
+
+.typeButtons {
+  margin: 10px;
 }

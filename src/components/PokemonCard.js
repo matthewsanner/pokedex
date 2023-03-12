@@ -14,7 +14,7 @@ function PokemonCard({ pokemon, onClick }) {
         <h6>{pokemon.name}</h6>
         <div className="types">
           {pokemon.types.map((type, index) => (
-            <div key={index} className="type" style={{ backgroundColor: typeColors[type.type.name] }}>
+            <div key={index} className="type-styles" style={{ backgroundColor: typeColors[type.type.name] }}>
               {type.type.name}
             </div>
           ))}

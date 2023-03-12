@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import PokemonList from './components/PokemonList';
 import TeamList from './components/TeamList';
+import TypeButton from './components/TypeButton';
 import './App.css';
+import { typeColors } from './typeColors';
 
 function Pokedex() {
   const [pokemon, setPokemon] = useState([]);
   const [team, setTeam] = useState([]);
+  const [isActive, setIsActive] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     async function fetchPokemon() {
@@ -31,6 +35,14 @@ function Pokedex() {
     setTeam(team.filter((pokemon) => pokemon !== result));
   };
 
+  const searchType = (type) => {
+    setSearchTerm(type);
+  };
+
+  const filteredPokemon = pokemon.filter((p) =>
+    searchTerm === '' ? true : p.types.some((t) => t.type.name === searchTerm)
+  );
+
   return (
     <div className="container-fluid">
       <div className="row">
@@ -39,13 +51,30 @@ function Pokedex() {
         </div>
       </div>
       <div className="row justify-content-center">
-        <div className="col-11 col-xl-3 order-xl-2 text-center sections team">
-          <TeamList team={team} onClick={removeFromTeam} />
+        <div className="accordion col-11 col-xl-4 order-xl-2 text-center sections sticky-top team">
+          <div className="accordion-item">
+            <div
+              className="accordion-title"
+              onClick={() => setIsActive(!isActive)}
+            >
+              <h3>Your Team (up to 6)</h3>
+              <h3>{isActive ? '-' : '+'}</h3>
+            </div>
+            {isActive && <div className="accordion-content">
+              <TeamList team={team} onClick={removeFromTeam} />
+            </div>}
+          </div>
         </div>
-        <div className="col-11 col-xl-8 order-xl-1 text-center sections">
-          <PokemonList pokemon={pokemon} onClick={addToTeam} />
+        <div className="col-11 col-xl-7 order-xl-1 text-center sections pokelist">
+          <h3>Click to choose your Pokemon!</h3>
+          <div className="typeButtons">
+            <button onClick={() => searchType('')} className="type-styles">All Types</button>
+            {Object.entries(typeColors).map(([key]) => (
+              <TypeButton key={key} type={key} searchType={searchType} />
+            ))}
+          </div>
+          <PokemonList pokemon={filteredPokemon} onClick={addToTeam} />
         </div>
-
       </div>
     </div>
   );
