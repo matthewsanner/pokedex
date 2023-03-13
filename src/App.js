@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PokemonList from './components/PokemonList';
 import TeamList from './components/TeamList';
 import TypeButton from './components/TypeButton';
@@ -10,20 +10,50 @@ function Pokedex() {
   const [team, setTeam] = useState([]);
   const [isActive, setIsActive] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [offset, setOffset] = useState(0);
+
+  let limit = 50;
+  if (searchTerm) {
+    limit = 100;
+  }
+
+  const handleLoadMore = useCallback(() => {
+    setOffset((prevOffset) => {
+      const newOffset = prevOffset + limit;
+      return newOffset > 958 ? 958 : newOffset;
+    });
+  }, [limit]);
 
   useEffect(() => {
     async function fetchPokemon() {
-      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
       const data = await response.json();
       const promises = data.results.map(async (result) => {
         const response = await fetch(result.url);
         return response.json();
       });
       const results = await Promise.all(promises);
-      setPokemon(results);
+      setPokemon((prevPokemon) => [...prevPokemon, ...results]);
     }
+
     fetchPokemon();
-  }, []);
+  }, [offset, limit]);
+
+  useEffect(() => {
+    function handleScroll() {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+      if (scrollTop + clientHeight >= scrollHeight - 10) {
+        handleLoadMore();
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleLoadMore]);
 
   const addToTeam = (result) => {
     if (team.length < 6 && !team.includes(result)) {
@@ -53,22 +83,23 @@ function Pokedex() {
       <div className="row justify-content-center">
         <div className="accordion col-11 col-xl-4 order-xl-2 text-center sections sticky-top team">
           <div className="accordion-item">
-            <div
-              className="accordion-title"
-              onClick={() => setIsActive(!isActive)}
-            >
+            <div className="accordion-title" onClick={() => setIsActive(!isActive)}>
               <h3>Your Team (up to 6)</h3>
               <h3>{isActive ? '-' : '+'}</h3>
             </div>
-            {isActive && <div className="accordion-content">
-              <TeamList team={team} onClick={removeFromTeam} />
-            </div>}
+            {isActive && (
+              <div className="accordion-content">
+                <TeamList team={team} onClick={removeFromTeam} />
+              </div>
+            )}
           </div>
         </div>
         <div className="col-11 col-xl-7 order-xl-1 text-center sections pokelist">
           <h3>Click to choose your Pokemon!</h3>
           <div className="typeButtons">
-            <button onClick={() => searchType('')} className="type-styles">All Types</button>
+            <button onClick={() => searchType('')} className="type-styles">
+              All Types
+            </button>
             {Object.entries(typeColors).map(([key]) => (
               <TypeButton key={key} type={key} searchType={searchType} />
             ))}

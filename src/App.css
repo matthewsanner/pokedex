@@ -78,6 +78,7 @@ h3 {
 
 .pokelist {
   margin-bottom: 30px;
+  min-height: 120vh;
 }
 
 .accordion-content {
