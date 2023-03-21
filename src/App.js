@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import PokemonList from './components/PokemonList';
-import TeamList from './components/TeamList';
-import TypeButton from './components/TypeButton';
-import './App.css';
-import { typeColors } from './typeColors';
+import React, { useState, useEffect, useCallback } from "react";
+import PokemonList from "./components/PokemonList";
+import TeamList from "./components/TeamList";
+import TypeButton from "./components/TypeButton";
+import "./App.css";
+import { typeColors } from "./typeColors";
 
 function Pokedex() {
   const [pokemon, setPokemon] = useState([]);
   const [team, setTeam] = useState([]);
   const [isActive, setIsActive] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [offset, setOffset] = useState(0);
 
   let limit = 50;
@@ -20,13 +20,19 @@ function Pokedex() {
   const handleLoadMore = useCallback(() => {
     setOffset((prevOffset) => {
       const newOffset = prevOffset + limit;
-      return newOffset > 958 ? 958 : newOffset;
+      if (searchTerm) {
+        return newOffset > 908 ? 908 : newOffset;
+      } else {
+        return newOffset > 958 ? 958 : newOffset;
+      }
     });
-  }, [limit]);
+  }, [limit, searchTerm]);
 
   useEffect(() => {
     async function fetchPokemon() {
-      const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
+      const response = await fetch(
+        `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`
+      );
       const data = await response.json();
       const promises = data.results.map(async (result) => {
         const response = await fetch(result.url);
@@ -41,17 +47,18 @@ function Pokedex() {
 
   useEffect(() => {
     function handleScroll() {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
 
       if (scrollTop + clientHeight >= scrollHeight - 10) {
         handleLoadMore();
       }
     }
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [handleLoadMore]);
 
@@ -70,7 +77,7 @@ function Pokedex() {
   };
 
   const filteredPokemon = pokemon.filter((p) =>
-    searchTerm === '' ? true : p.types.some((t) => t.type.name === searchTerm)
+    searchTerm === "" ? true : p.types.some((t) => t.type.name === searchTerm)
   );
 
   return (
@@ -83,9 +90,12 @@ function Pokedex() {
       <div className="row justify-content-center">
         <div className="accordion col-11 col-xl-4 order-xl-2 text-center sections sticky-top team">
           <div className="accordion-item">
-            <div className="accordion-title" onClick={() => setIsActive(!isActive)}>
+            <div
+              className="accordion-title"
+              onClick={() => setIsActive(!isActive)}
+            >
               <h3>Your Team (up to 6)</h3>
-              <h3>{isActive ? '-' : '+'}</h3>
+              <h3>{isActive ? "-" : "+"}</h3>
             </div>
             {isActive && (
               <div className="accordion-content">
@@ -97,7 +107,7 @@ function Pokedex() {
         <div className="col-11 col-xl-7 order-xl-1 text-center sections pokelist">
           <h3>Click to choose your Pokemon!</h3>
           <div className="typeButtons">
-            <button onClick={() => searchType('')} className="type-styles">
+            <button onClick={() => searchType("")} className="type-styles">
               All Types
             </button>
             {Object.entries(typeColors).map(([key]) => (
