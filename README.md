@@ -2,7 +2,7 @@
 
 This project uses React.js and the [Pokemon API](https://pokeapi.co/) to create a Pokedex of 1000+ Pokemon that you can choose from to create your team of 6 Pokemon. It uses hooks, paginated API calls, queries, and Bootstrap to make everything responsive to screen size. 
 
-I'm interested in potentially making this something that you could easily share on social media, to let everyone see your team, and they can go make their own. 
+I'm interested in potentially making this something that you could easily share on social media, to let everyone see your team, and invite them to make their own. 
 
 # Getting Started with Create React App
 
