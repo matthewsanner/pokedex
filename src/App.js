@@ -45,33 +45,33 @@ function Pokedex() {
     fetchPokemon();
   }, [offset, limit]);
 
-  // ...
+  useEffect(() => {
+    function handleScroll() {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
-useEffect(() => {
-  function handleScroll() {
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-    if (scrollTop + clientHeight >= scrollHeight - 10) {
-      handleLoadMore();
+      if (isScrolledToBottom) {
+        handleLoadMore();
+      }
     }
-  }
 
-  function handleTouchMove() {
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    function handleTouchMove() {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
-    if (scrollTop + clientHeight >= scrollHeight - 10) {
-      handleLoadMore();
+      if (isScrolledToBottom) {
+        handleLoadMore();
+      }
     }
-  }
 
-  window.addEventListener("scroll", handleScroll);
-  window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("touchmove", handleTouchMove);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll);
-    window.removeEventListener("touchmove", handleTouchMove);
-  };
-}, [handleLoadMore]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [handleLoadMore]);
 
   const addToTeam = (result) => {
     if (team.length < 6 && !team.includes(result)) {
