@@ -45,22 +45,33 @@ function Pokedex() {
     fetchPokemon();
   }, [offset, limit]);
 
-  useEffect(() => {
-    function handleScroll() {
-      const { scrollTop, scrollHeight, clientHeight } =
-        document.documentElement;
+  // ...
 
-      if (scrollTop + clientHeight >= scrollHeight - 10) {
-        handleLoadMore();
-      }
+useEffect(() => {
+  function handleScroll() {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      handleLoadMore();
     }
+  }
 
-    window.addEventListener("scroll", handleScroll);
+  function handleTouchMove() {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [handleLoadMore]);
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      handleLoadMore();
+    }
+  }
+
+  window.addEventListener("scroll", handleScroll);
+  window.addEventListener("touchmove", handleTouchMove);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+    window.removeEventListener("touchmove", handleTouchMove);
+  };
+}, [handleLoadMore]);
 
   const addToTeam = (result) => {
     if (team.length < 6 && !team.includes(result)) {
