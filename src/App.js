@@ -47,7 +47,8 @@ function Pokedex() {
 
   useEffect(() => {
     function handleScroll() {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
       const isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
       if (isScrolledToBottom) {
@@ -56,7 +57,8 @@ function Pokedex() {
     }
 
     function handleTouchMove() {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
       const isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
       if (isScrolledToBottom) {
@@ -74,7 +76,7 @@ function Pokedex() {
   }, [handleLoadMore]);
 
   const addToTeam = (result) => {
-    if (team.length < 12 && !team.includes(result)) {
+    if (team.length < 10 && !team.includes(result)) {
       setTeam([...team, result]);
     }
   };
@@ -103,9 +105,8 @@ function Pokedex() {
           <div className="accordion-item">
             <div
               className="accordion-title"
-              onClick={() => setIsActive(!isActive)}
-            >
-              <h3>Your Team (up to 12)</h3>
+              onClick={() => setIsActive(!isActive)}>
+              <h3>Your Team (up to 10)</h3>
               <h3>{isActive ? "-" : "+"}</h3>
             </div>
             {isActive && (
