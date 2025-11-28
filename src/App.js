@@ -4,6 +4,7 @@ import TeamList from "./components/TeamList";
 import TypeButton from "./components/TypeButton";
 import "./App.css";
 import { typeColors } from "./typeColors";
+import { cachedFetch } from "./apiCache";
 
 function Pokedex() {
   const [pokemon, setPokemon] = useState([]);
@@ -74,13 +75,13 @@ function Pokedex() {
     async function fetchPokemon() {
       isFetching.current = true;
       try {
-        const response = await fetch(
-          `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`
-        );
-        const data = await response.json();
+        // Use cached fetch for the list endpoint
+        const listUrl = `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`;
+        const data = await cachedFetch(listUrl);
+
+        // Use cached fetch for individual Pokemon endpoints
         const promises = data.results.map(async (result) => {
-          const response = await fetch(result.url);
-          return response.json();
+          return await cachedFetch(result.url);
         });
         const results = await Promise.all(promises);
 
