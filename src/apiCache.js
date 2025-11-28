@@ -165,20 +165,61 @@ async function deleteCached(url) {
   }
 }
 
-// Cached fetch wrapper
-export async function cachedFetch(url) {
+// Cached fetch wrapper with retry logic
+export async function cachedFetch(url, retries = 3) {
   // Try to get from cache first
   const cached = await getCached(url);
   if (cached !== null) {
     return cached;
   }
 
-  // If not in cache or expired, fetch from API
-  const response = await fetch(url);
-  const data = await response.json();
+  // Retry logic for API calls
+  let lastError;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(url);
 
-  // Store in cache (will be compressed if it's a Pokemon endpoint)
-  await setCached(url, data);
+      // Check if response is OK
+      if (!response.ok) {
+        // If it's a server error (5xx), retry
+        if (response.status >= 500 && attempt < retries - 1) {
+          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        // For other errors, throw immediately
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-  return data;
+      // Try to parse JSON
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        // If JSON parsing fails, it might be a timeout or error page
+        throw new Error(`Invalid JSON response: ${response.statusText}`);
+      }
+
+      // Store in cache (will be compressed if it's a Pokemon endpoint)
+      await setCached(url, data);
+
+      return data;
+    } catch (error) {
+      lastError = error;
+      // If it's a network error and we have retries left, wait and retry
+      if (
+        attempt < retries - 1 &&
+        (error.name === "TypeError" || error.message.includes("fetch"))
+      ) {
+        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      // If we're out of retries or it's a non-retryable error, throw
+      throw error;
+    }
+  }
+
+  // If we exhausted all retries, throw the last error
+  throw lastError || new Error("Failed to fetch after retries");
 }

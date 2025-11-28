@@ -80,14 +80,28 @@ function Pokedex() {
         const data = await cachedFetch(listUrl);
 
         // Use cached fetch for individual Pokemon endpoints
+        // Use allSettled instead of all to handle individual failures gracefully
         const promises = data.results.map(async (result) => {
-          return await cachedFetch(result.url);
+          try {
+            return await cachedFetch(result.url);
+          } catch (error) {
+            console.warn(`Failed to fetch Pokemon at ${result.url}:`, error);
+            return null; // Return null for failed fetches
+          }
         });
-        const results = await Promise.all(promises);
+        const settledResults = await Promise.allSettled(promises);
+
+        // Extract successful results, filtering out nulls and rejected promises
+        const results = settledResults
+          .map((result) =>
+            result.status === "fulfilled" ? result.value : null
+          )
+          .filter((p) => p !== null);
 
         // Filter out Pokemon without sprites and duplicates using Pokemon IDs
         const newPokemon = results.filter(
-          (p) => p.sprites?.front_default && !loadedPokemonIds.current.has(p.id)
+          (p) =>
+            p && p.sprites?.front_default && !loadedPokemonIds.current.has(p.id)
         );
 
         // Add new IDs to the set
