@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import PokemonList from "./components/PokemonList";
 import TeamList from "./components/TeamList";
 import TypeButton from "./components/TypeButton";
@@ -10,40 +10,152 @@ function Pokedex() {
   const [team, setTeam] = useState([]);
   const [isActive, setIsActive] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [nameSearch, setNameSearch] = useState("");
   const [offset, setOffset] = useState(0);
+  const [maxLoadedOffset, setMaxLoadedOffset] = useState(0);
+  const loadedPokemonIds = useRef(new Set());
+  const isFetching = useRef(false);
+  const lastAutoFetchedFilter = useRef("");
+  const pokemonRef = useRef([]);
+  const maxLoadedOffsetRef = useRef(0);
 
-  let limit = 50;
-  if (searchTerm) {
-    limit = 100;
-  }
-
-  const handleLoadMore = useCallback(() => {
-    setOffset((prevOffset) => {
-      const newOffset = prevOffset + limit;
-      if (searchTerm) {
-        return newOffset > 908 ? 908 : newOffset;
-      } else {
-        return newOffset > 958 ? 958 : newOffset;
-      }
-    });
-  }, [limit, searchTerm]);
+  // Keep refs in sync with state
+  useEffect(() => {
+    pokemonRef.current = pokemon;
+  }, [pokemon]);
 
   useEffect(() => {
+    maxLoadedOffsetRef.current = maxLoadedOffset;
+  }, [maxLoadedOffset]);
+
+  const limit = searchTerm || nameSearch ? 100 : 50;
+
+  // Filter existing Pokemon first
+  const filteredPokemon = pokemon.filter((p) => {
+    // Type filter
+    const matchesType =
+      searchTerm === "" || p.types.some((t) => t.type.name === searchTerm);
+    // Name filter
+    const matchesName =
+      nameSearch === "" ||
+      p.name.toLowerCase().includes(nameSearch.toLowerCase());
+    return matchesType && matchesName;
+  });
+
+  const handleLoadMore = useCallback(() => {
+    if (isFetching.current) return;
+
+    // Check if we've loaded all Pokemon (applies to both filtered and unfiltered)
+    if (maxLoadedOffset >= 1328) {
+      return;
+    }
+
+    setOffset((prevOffset) => {
+      // Only increment if we haven't already loaded this range
+      if (prevOffset >= maxLoadedOffset) {
+        const newOffset = prevOffset + limit;
+        const maxOffset = 1328;
+        return newOffset > maxOffset ? maxOffset : newOffset;
+      }
+      return prevOffset;
+    });
+  }, [limit, maxLoadedOffset]);
+
+  useEffect(() => {
+    // Only fetch if:
+    // - Initial load: offset=0 and maxLoadedOffset=0
+    // - Subsequent loads: offset > maxLoadedOffset
+    const shouldFetch =
+      (maxLoadedOffset === 0 && offset === 0) || offset > maxLoadedOffset;
+    if (!shouldFetch || isFetching.current) {
+      return;
+    }
+
     async function fetchPokemon() {
-      const response = await fetch(
-        `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`
-      );
-      const data = await response.json();
-      const promises = data.results.map(async (result) => {
-        const response = await fetch(result.url);
-        return response.json();
-      });
-      const results = await Promise.all(promises);
-      setPokemon((prevPokemon) => [...prevPokemon, ...results]);
+      isFetching.current = true;
+      try {
+        const response = await fetch(
+          `https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`
+        );
+        const data = await response.json();
+        const promises = data.results.map(async (result) => {
+          const response = await fetch(result.url);
+          return response.json();
+        });
+        const results = await Promise.all(promises);
+
+        // Filter out Pokemon without sprites and duplicates using Pokemon IDs
+        const newPokemon = results.filter(
+          (p) => p.sprites?.front_default && !loadedPokemonIds.current.has(p.id)
+        );
+
+        // Add new IDs to the set
+        newPokemon.forEach((p) => loadedPokemonIds.current.add(p.id));
+
+        setPokemon((prevPokemon) => [...prevPokemon, ...newPokemon]);
+        setMaxLoadedOffset(offset);
+      } catch (error) {
+        console.error("Error fetching Pokemon:", error);
+      } finally {
+        isFetching.current = false;
+      }
     }
 
     fetchPokemon();
-  }, [offset, limit]);
+  }, [offset, limit, maxLoadedOffset]);
+
+  // When filter changes, check if we need to load more Pokemon
+  useEffect(() => {
+    const filterKey = `${searchTerm}|${nameSearch}`;
+    if (isFetching.current || filterKey === lastAutoFetchedFilter.current) {
+      return;
+    }
+
+    // Mark that we've checked this filter combination
+    lastAutoFetchedFilter.current = filterKey;
+
+    // Only auto-fetch when a filter is applied and we don't have enough results
+    if (searchTerm || nameSearch) {
+      // Check current filtered count using ref to get latest pokemon
+      const currentFiltered = pokemonRef.current.filter((p) => {
+        const matchesType =
+          searchTerm === "" || p.types.some((t) => t.type.name === searchTerm);
+        const matchesName =
+          nameSearch === "" ||
+          p.name.toLowerCase().includes(nameSearch.toLowerCase());
+        return matchesType && matchesName;
+      });
+
+      if (currentFiltered.length < 20 && maxLoadedOffsetRef.current < 1328) {
+        // Use a small delay to avoid race conditions
+        const timer = setTimeout(() => {
+          handleLoadMore();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      // Filter cleared, reset tracking
+      lastAutoFetchedFilter.current = "";
+    }
+  }, [searchTerm, nameSearch, handleLoadMore]);
+
+  // Auto-load more Pokemon if displaying less than 16 results
+  useEffect(() => {
+    // Only trigger if we have less than 16 displayed Pokemon
+    // and we haven't loaded all Pokemon yet
+    // and we're not currently fetching
+    if (
+      filteredPokemon.length < 16 &&
+      maxLoadedOffset < 1328 &&
+      !isFetching.current
+    ) {
+      // Use a small delay to avoid race conditions and allow state to settle
+      const timer = setTimeout(() => {
+        handleLoadMore();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [filteredPokemon.length, maxLoadedOffset, handleLoadMore]);
 
   useEffect(() => {
     function handleScroll() {
@@ -89,10 +201,6 @@ function Pokedex() {
     setSearchTerm(type);
   };
 
-  const filteredPokemon = pokemon.filter((p) =>
-    searchTerm === "" ? true : p.types.some((t) => t.type.name === searchTerm)
-  );
-
   return (
     <div className="container-fluid">
       <div className="row">
@@ -118,6 +226,15 @@ function Pokedex() {
         </div>
         <div className="col-11 col-xl-7 order-xl-1 text-center sections pokelist">
           <h3>Click to choose your Pokemon!</h3>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+              className="name-search-input"
+            />
+          </div>
           <div className="typeButtons">
             <button onClick={() => searchType("")} className="type-styles">
               All Types

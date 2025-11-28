@@ -108,6 +108,28 @@ h3 {
   margin: 10px;
 }
 
+.search-container {
+  margin: 10px;
+  margin-bottom: 15px;
+}
+
+.name-search-input {
+  width: 200px;
+  padding: 8px;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: #fff;
+  font-size: 14px;
+  text-align: center;
+  text-transform: capitalize;
+  box-shadow: -1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.name-search-input:focus {
+  outline: none;
+  box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
 .accordion-content {
   max-height: 75vh;
   overflow-y: auto;
